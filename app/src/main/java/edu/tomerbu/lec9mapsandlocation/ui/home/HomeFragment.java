@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,13 +22,11 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 
 import edu.tomerbu.lec9mapsandlocation.R;
 
@@ -56,7 +55,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         }
     };
 
-    //4
+    //4 so the context is not null when we init it.
     private void initClient() {
         if (getContext() != null)
             mApiClient = new FusedLocationProviderClient(getContext());
@@ -96,8 +95,6 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         return root;
     }
 
-    SupportMapFragment mapFragment;
-
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -105,9 +102,9 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             askForLocationPermission();
         }
 
-        //add a fragment: in a fragment:
+        //add a fragment: in a fragment: //getChildFragmentManager
 
-        mapFragment = new SupportMapFragment();
+        SupportMapFragment mapFragment = new SupportMapFragment();
         mapFragment.getMapAsync(this);
         getChildFragmentManager().beginTransaction().replace(R.id.frame, mapFragment).commit();
 
@@ -136,8 +133,8 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     private LocationRequest getLocationRequest() {
         LocationRequest request = new LocationRequest();
         //request.setNumUpdates(1);
-        request.setInterval(1000); //every 60 seconds
-        request.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);//Battery consumption (vs) accuracy
+        request.setInterval(2 * 1000); //(2 seconds)
+        request.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);//Battery consumption (vs) accuracy
         request.setFastestInterval(1000); //if other apps already get the location more rapidly -> we want in.
         // request.setSmallestDisplacement(100); //only callback on updates over 100M
         return request;
@@ -160,7 +157,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                     1);
     }
 
-    //2
+    //Permission: 2
     //test if we have permission
     private boolean checkPermission() {
         int result = ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION);
@@ -172,7 +169,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         return false;
     }
 
-    //3
+    //Permission: 3
     //onRequestPermissionResult
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -183,6 +180,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         }
     }
 
+    //when the map is ready -> save a reference to it
     @Override
     public void onMapReady(GoogleMap googleMap) {
         this.mMap = googleMap;
